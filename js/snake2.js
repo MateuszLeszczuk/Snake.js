@@ -4,8 +4,8 @@ const ctx = canvas.getContext('2d');
 let speed = 7
 let tileCount = 20;       // zmienna do podzielenia ekranu czyli ekran ma 20 x 20
 let tileSize = canvas.clientWidth / tileCount - 2;
-let headX = tileCount/2;           // srodek planszy w osi X
-let headY = tileCount/2;           // srodek planszy w osi Y
+let headX = tileCount / 2;           // srodek planszy w osi X
+let headY = tileCount / 2;           // srodek planszy w osi Y
 
 let verticalMove = 0    // pionowo
 let horizontalMove = 0  // poziomo
@@ -13,8 +13,6 @@ let horizontalMove = 0  // poziomo
 let appleX = 5
 let appleY = 5
 
-const snakeParts = []
-let tailLength = 2
 
 
 
@@ -25,22 +23,24 @@ class snakePart {
     }
 }
 
+const snakeParts = [new snakePart(headX, headY + 1), new snakePart(headX, headY + 2)]
+
+
 
 
 function drawGame() {
-    console.log(snakeParts.length);
+
     changeSnakePos()
-    if (isGameOver()) return
-    
+
+    if (isGameOver()) {
+        endOfGame()
+        return
+    }
     
     clearScreen();
     generateSnake()
     generateApple()
     checkCollisionWithApple()
-    
-    
-
-
     refresh()
 }
 
@@ -56,51 +56,57 @@ function clearScreen() {
 }
 
 function generateSnake() {
-    
-    
+
+
+    //glowa 
+    ctx.fillStyle = 'yellow'
+    ctx.fillRect(headX * tileCount, headY * tileCount, tileSize, tileSize)
+
+
+
     ctx.fillStyle = "green";
-    
     for (let i = 0; i < snakeParts.length; i++) {
-        
+
         let part = snakeParts[i]
         ctx.fillRect(part.x * tileCount, part.y * tileCount, tileSize, tileSize)
     }
-    
-    
-    snakeParts.push(new snakePart(headX,headY))
-    if (snakeParts.length > tailLength) {
-        snakeParts.shift();
-        
-    }
-    
-    
-    ctx.fillStyle = 'yellow'
-    ctx.fillRect(headX * tileCount, headY * tileCount, tileSize, tileSize)
+
+
+
+
 
 
 }
 
 
 function changeSnakePos() {
-    
 
-    // for (let i = 0; i < snakeParts.length; i++) {
+    console.log(`Ruch w kierunku x=${horizontalMove}, y=${verticalMove}`);
 
-    //     if (i == 0) {
-    //         snakeParts[i].y = headY 
-    //         snakeParts[i].x = headX 
-    //         console.log(`${headX}, ${headY}`);
-    //     }
-    //     else {
-    //         snakeParts[i].y = snakeParts[i - 1].y
-    //         snakeParts[i].x = snakeParts[i - 1].x
-    //         console.log(`${snakeParts[i].y}, ${snakeParts[i].y}`);
-    //     }
 
-    // }
 
-    headY += verticalMove
-    headX += horizontalMove
+    if (verticalMove != 0 || horizontalMove != 0) {
+
+
+        for (let i = snakeParts.length - 1; i >= 0; i--) {
+
+
+            if (i == 0) {
+                snakeParts[0].y = headY
+                snakeParts[0].x = headX
+            }
+            else {
+                snakeParts[i].y = snakeParts[i - 1].y
+                snakeParts[i].x = snakeParts[i - 1].x
+            }
+
+        }
+
+        headY = headY + verticalMove
+        headX = headX + horizontalMove
+        console.log(`Glowa ${headX},${headY}`);
+
+    }
 
 
 }
@@ -116,26 +122,22 @@ function checkCollisionWithApple() {
     if (headX == appleX && headY == appleY) {
         appleX = Math.floor(Math.random() * tileCount)
         appleY = Math.floor(Math.random() * tileCount)
-        tailLength++
-        //addNewPartOfSnake()
-
+        addNewPartToSnake()
     }
 }
 
+function addNewPartToSnake() {
+    let lastPart = snakeParts.length - 1
+    snakeParts.push(new snakePart(snakeParts[lastPart].x, snakeParts[lastPart].y))
+}
 
-// function addNewPartOfSnake() {
-//     let tmp1 = snakeParts[tailLength - 1]
-//     let tmp2 = snakeParts[tailLength - 1]
-//     snakeParts.push(new snakePart(tmp1,tmp2 ))
-
-// }
 
 
 function isGameOver() {
 
     let gameOverStatus = false
 
-    if(verticalMove == 0 && horizontalMove == 0) return  gameOverStatus
+    if (verticalMove == 0 && horizontalMove == 0) return gameOverStatus
 
     if (headX < 0) {
 
@@ -170,7 +172,18 @@ function isGameOver() {
         }
     }
 
+
+
+
     return gameOverStatus
+}
+
+
+function endOfGame() {
+    ctx.font = "50px Arial";
+    ctx.fillStyle = 'red'
+    ctx.textAlign = "center";
+    ctx.fillText("Game Over", canvas.clientWidth / 2, canvas.clientHeight / 2);
 
 }
 
@@ -209,6 +222,7 @@ document.addEventListener('keydown', (e) => {
         verticalMove = 0
         horizontalMove = 1
     }
+
 })
 
 
